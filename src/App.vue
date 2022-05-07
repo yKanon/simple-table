@@ -1,36 +1,170 @@
-<script setup lang="ts">
-// This starter template is using Vue 3 <script setup> SFCs
-// Check out https://vuejs.org/api/sfc-script-setup.html#script-setup
-import WTable from './components/table';
+<template>
+  <table-lite
+    :has-checkbox="true"
+    :is-loading="table.isLoading"
+    :is-re-search="table.isReSearch"
+    :columns="table.columns"
+    :rows="table.rows"
+    :total="table.totalRecordCount"
+    :sortable="table.sortable"
+    :messages="table.messages"
+    @do-search="doSearch"
+    @is-finished="tableLoadingFinish"
+    @return-checked-rows="updateCheckedRows"
+  ></table-lite>
+</template>
 
-const createColumns = () => {
-  return [
-    {
-      title: 'No',
-      key: 'no',
-    },
-    {
-      title: 'Title',
-      key: 'title',
-    },
-    {
-      title: 'Length',
-      key: 'length',
-    },
-  ];
+<script>
+import { defineComponent, reactive } from 'vue';
+import TableLite from './components/table.vue';
+
+const sampleData1 = (offst, limit) => {
+  offst = offst + 1;
+  let data = [];
+  for (let i = offst; i <= limit; i++) {
+    data.push({
+      id: i,
+      name: 'TEST' + i,
+      email: 'test' + i + '@example.com',
+    });
+  }
+  return data;
 };
 
-const data = [
-  { no: 3, title: 'Wonderwall', length: '4:18' },
-  { no: 4, title: "Don't Look Back in Anger", length: '4:48' },
-  { no: 12, title: 'Champagne Supernova', length: '7:27' },
-];
-const columns = createColumns();
-</script>
+const sampleData2 = (offst, limit) => {
+  let data = [];
+  for (let i = limit; i > offst; i--) {
+    data.push({
+      id: i,
+      name: 'TEST' + i,
+      email: 'test' + i + '@example.com',
+    });
+  }
+  return data;
+};
 
-<template>
-  <WTable :data="data" :columns="columns" />
-</template>
+export default defineComponent({
+  name: 'App',
+  components: {
+    TableLite,
+  },
+  setup() {
+    // 用戶一覽表設定值
+    const table = reactive({
+      isLoading: false,
+      isReSearch: false,
+      columns: [
+        {
+          label: 'ID',
+          field: 'id',
+          width: '3%',
+          sortable: true,
+          isKey: true,
+        },
+        {
+          label: 'Name',
+          field: 'name',
+          width: '10%',
+          sortable: true,
+          display: function (row) {
+            return (
+              '<a href="#" data-id="' +
+              row.user_id +
+              '" class="name-btn">' +
+              row.name +
+              '</button>'
+            );
+          },
+        },
+        {
+          label: 'Email',
+          field: 'email',
+          width: '15%',
+          sortable: true,
+        },
+        {
+          label: '',
+          field: 'quick',
+          width: '10%',
+          display: function (row) {
+            return (
+              '<button type="button" data-id="' +
+              row.user_id +
+              '" class="quick-btn">Button</button>'
+            );
+          },
+        },
+      ],
+      rows: sampleData1(0, 10),
+      totalRecordCount: 20,
+      sortable: {
+        order: 'id',
+        sort: 'asc',
+      },
+      messages: {
+        pagingInfo: 'Showing {0}-{1} of {2}',
+        pageSizeChangeLabel: 'Row count:',
+        gotoPageLabel: 'Go to page:',
+        noDataAvailable: 'No data',
+      },
+    });
+
+    const doSearch = (offset, limit, order, sort) => {
+      table.isLoading = true;
+      setTimeout(() => {
+        table.isReSearch = offset == undefined ? true : false;
+        if (limit >= 20) {
+          limit = 20;
+        }
+        if (sort == 'asc') {
+          table.rows = sampleData1(offset, limit);
+        } else {
+          table.rows = sampleData2(offset, limit);
+        }
+        table.totalRecordCount = 20;
+        table.sortable.order = order;
+        table.sortable.sort = sort;
+      }, 600);
+    };
+
+    /**
+     * 資料讀取結束事件
+     *
+     * @param Collection elements 靜態元件
+     */
+    const tableLoadingFinish = (elements) => {
+      table.isLoading = false;
+      Array.prototype.forEach.call(elements, function (element) {
+        if (element.classList.contains('name-btn')) {
+          element.addEventListener('click', function () {
+            console.log(this.dataset.id + ' name-btn click!!');
+          });
+        }
+        if (element.classList.contains('quick-btn')) {
+          // 設定快捷按鈕點擊事件
+          element.addEventListener('click', function () {
+            console.log(this.dataset.id + ' quick-btn click!!');
+          });
+        }
+      });
+    };
+
+    /**
+     * 更新目前選上的資料
+     */
+    const updateCheckedRows = (rowsKey) => {
+      console.log(rowsKey);
+    };
+
+    return {
+      table,
+      doSearch,
+      tableLoadingFinish,
+      updateCheckedRows,
+    };
+  },
+});
+</script>
 
 <style>
 #app {
@@ -39,6 +173,5 @@ const columns = createColumns();
   -moz-osx-font-smoothing: grayscale;
   text-align: center;
   color: #2c3e50;
-  margin: 60px;
 }
 </style>
