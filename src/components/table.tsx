@@ -13,6 +13,16 @@ export default defineComponent({
       return isFunction(column.title) ? column.title(column) : column.title;
     };
 
+    const renderRow = (data) => {
+      return data.value.map((row) => {
+        const tds = columns.value.map((col) => {
+          return <td>{row[col?.key]}</td>;
+        });
+
+        return <tr>{tds}</tr>;
+      });
+    };
+
     return () => {
       return (
         <table>
@@ -24,12 +34,9 @@ export default defineComponent({
               })}
             </th>
           </thead>
+
           {/* 表体 */}
-          <tbody>
-            <tr>
-              <td>hello table</td>
-            </tr>
-          </tbody>
+          <tbody>{renderRow(data.value)}</tbody>
         </table>
       );
     };
