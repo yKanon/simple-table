@@ -1,171 +1,36 @@
 <template>
-  <div class="card">
-    <w-title ref="tableTitle" v-if="title" :title="title" />
-    <div class="card-body">
-      <p class="card-title"></p>
-      <div
-        id="dataTables-example_wrapper"
-        class="dataTables_wrapper dt-bootstrap4 no-footer"
-      >
-        <div class="row"></div>
-        <div class="row">
-          <div class="col-sm-12">
-            <table
-              class="table table-hover table-bordered table-responsive-sm"
-              id="dataTables-example"
-              width="100%"
-            >
-              <div class="row"></div>
-              <w-loading ref="tableLoadingRef" v-if="isLoading" />
+  <div
+    id="dataTables-example_wrapper"
+    class="dataTables_wrapper dt-bootstrap4 no-footer"
+  >
+    <div class="row"></div>
+    <div class="row">
+      <div class="col-sm-12">
+        <table
+          class="table table-hover table-bordered table-responsive-sm"
+          id="dataTables-example"
+          width="100%"
+        >
+          <div class="row"></div>
+          <w-loading ref="tableLoadingRef" v-if="isLoading" />
 
-              <w-head
-                ref="tableHeadRef"
-                :hasCheckbox="hasCheckbox"
-                :columns="columns"
-                :sortable="sortable"
-              />
+          <w-head
+            ref="tableHeadRef"
+            :hasCheckbox="hasCheckbox"
+            :columns="columns"
+            :sortable="sortable"
+          />
 
-              <tbody v-if="rows.length > 0">
-                <tr v-for="(row, i) in rows" :key="i">
-                  <td v-if="hasCheckbox">
-                    <div>
-                      <input
-                        type="checkbox"
-                        :ref="
-                          (el) => {
-                            rowCheckbox[i] = el;
-                          }
-                        "
-                        :value="row[setting.keyColumn]"
-                        @click="checked"
-                      />
-                    </div>
-                  </td>
-                  <td v-for="(col, j) in columns" :key="j">
-                    <div v-if="col.display" v-html="col.display(row)"></div>
-                    <span v-else>{{ row[col.field] }}</span>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-        <div class="row" v-if="rows.length > 0">
-          <div class="col-sm-12 col-md-4">
-            <div role="status" aria-live="polite">
-              {{
-                messages.pagingInfo.format(setting.offset, setting.limit, total)
-              }}
-            </div>
-          </div>
-          <div class="col-sm-12 col-md-4">
-            <span>{{ messages.pageSizeChangeLabel }}</span>
-            <select v-model="setting.pageSize">
-              <option value="10">10</option>
-              <option value="25">25</option>
-              <option value="50">50</option>
-            </select>
-            <span>{{ messages.gotoPageLabel }}</span>
-            <select v-model="setting.page">
-              <option v-for="n in setting.maxPage" :key="n">{{ n }}</option>
-            </select>
-          </div>
-          <div class="col-sm-12 col-md-4">
-            <div
-              class="dataTables_paginate paging_simple_numbers"
-              id="dataTables-example_paginate"
-            >
-              <ul class="pagination">
-                <li class="page-item" :class="{ disabled: setting.page <= 1 }">
-                  <a
-                    class="page-link"
-                    href="javascript:void(0)"
-                    aria-label="Previous"
-                    @click="setting.page = 1"
-                  >
-                    <span aria-hidden="true">&laquo;</span>
-                    <span class="sr-only">First</span>
-                  </a>
-                </li>
-                <li class="page-item" :class="{ disabled: setting.page <= 1 }">
-                  <a
-                    class="page-link"
-                    href="javascript:void(0)"
-                    aria-label="Previous"
-                    @click="prevPage"
-                  >
-                    <span aria-hidden="true">&lt;</span>
-                    <span class="sr-only">Prev</span>
-                  </a>
-                </li>
-                <li
-                  class="page-item"
-                  v-for="n in setting.pagging"
-                  :key="n"
-                  :class="{ disabled: setting.page == n }"
-                >
-                  <a
-                    class="page-link"
-                    href="javascript:void(0)"
-                    @click="movePage(n)"
-                    >{{ n }}</a
-                  >
-                </li>
-                <li
-                  class="page-item"
-                  :class="{ disabled: setting.page >= setting.maxPage }"
-                >
-                  <a
-                    class="page-link"
-                    href="javascript:void(0)"
-                    aria-label="Next"
-                    @click="nextPage"
-                  >
-                    <span aria-hidden="true">&gt;</span>
-                    <span class="sr-only">Next</span>
-                  </a>
-                </li>
-                <li
-                  class="page-item"
-                  :class="{ disabled: setting.page >= setting.maxPage }"
-                >
-                  <a
-                    class="page-link"
-                    href="javascript:void(0)"
-                    aria-label="Next"
-                    @click="setting.page = setting.maxPage"
-                  >
-                    <span aria-hidden="true">&raquo;</span>
-                    <span class="sr-only">Last</span>
-                  </a>
-                </li>
-              </ul>
-            </div>
-          </div>
-        </div>
-        <div class="row" v-else>
-          <div class="col-sm-12 text-center">
-            {{ messages.noDataAvailable }}
-          </div>
-        </div>
+          <w-body v-if="rows.length > 0" />
+        </table>
       </div>
     </div>
+
+    <w-pagination />
   </div>
 </template>
 
 <script>
-String.prototype.format = function () {
-  var args = arguments;
-  return this.replace(/{([0-9]*)}/g, function (match, number) {
-    return typeof args[number] != 'undefined' ? args[number] : match;
-  });
-};
-
-import WTitle from './title.vue';
-import WHead from './head.vue';
-import WBody from './body.vue';
-import WLoading from './loading.vue';
-
 import {
   defineComponent,
   ref,
@@ -175,6 +40,12 @@ import {
   onBeforeUpdate,
   nextTick,
 } from 'vue';
+
+import WTitle from './title.vue';
+import WHead from './head.vue';
+import WBody from './body.vue';
+import WLoading from './loading.vue';
+import WPagination from './pagination.vue';
 
 export default defineComponent({
   name: 'WTable',
@@ -256,6 +127,7 @@ export default defineComponent({
     WHead,
     WBody,
     WLoading,
+    WPagination,
   },
   setup(props, { emit }) {
     const tableHeadRef = ref(null);
@@ -515,19 +387,6 @@ export default defineComponent({
 </script>
 
 <style>
-.card {
-  position: relative;
-  display: -ms-flexbox;
-  display: flex;
-  -ms-flex-direction: column;
-  flex-direction: column;
-  min-width: 0;
-  word-wrap: break-word;
-  background-color: #fff;
-  background-clip: border-box;
-  padding: 20px;
-}
-
 select {
   width: auto;
   border: 1px solid #cccccc;
