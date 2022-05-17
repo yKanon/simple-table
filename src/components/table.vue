@@ -1,6 +1,6 @@
 <template>
   <div class="card">
-    <div class="card-header" v-if="title">{{ title }}</div>
+    <w-title ref="tableTitle" v-if="title" :title="title" />
     <div class="card-body">
       <p class="card-title"></p>
       <div
@@ -16,47 +16,26 @@
               width="100%"
             >
               <div class="row"></div>
-              <div v-if="isLoading" class="loading-mask">
-                <div class="loading-content">
-                  <span style="color: white">Loading...</span>
-                </div>
-              </div>
-              <thead class="thead-dark">
-                <tr>
-                  <th v-if="hasCheckbox" class="checkbox-th">
-                    <div>
-                      <input type="checkbox" v-model="setting.isCheckAll" />
-                    </div>
-                  </th>
-                  <th
-                    v-for="(col, index) in columns"
-                    :key="index"
-                    :style="{ width: col.width ? col.width : 'auto' }"
-                  >
-                    <div
-                      :class="{
-                        sortable: col.sortable,
-                        both: col.sortable,
-                        asc:
-                          sortable.order == col.field && sortable.sort == 'asc',
-                        desc:
-                          sortable.order == col.field &&
-                          sortable.sort == 'desc',
-                      }"
-                      @click="col.sortable ? doSort(col.field) : false"
-                    >
-                      {{ col.label }}
-                    </div>
-                  </th>
-                </tr>
-              </thead>
+              <w-loading ref="tableLoadingRef" v-if="isLoading" />
+
+              <w-head
+                ref="tableHeadRef"
+                :hasCheckbox="hasCheckbox"
+                :columns="columns"
+                :sortable="sortable"
+              />
+
               <tbody v-if="rows.length > 0">
                 <tr v-for="(row, i) in rows" :key="i">
                   <td v-if="hasCheckbox">
                     <div>
                       <input
                         type="checkbox"
-                        :ref="(el) => {rowCheckbox[i] = el}"
+                        :ref="
+                          (el) => {
+                            rowCheckbox[i] = el;
+                          }
+                        "
                         :value="row[setting.keyColumn]"
                         @click="checked"
                       />
@@ -178,9 +157,14 @@
 String.prototype.format = function () {
   var args = arguments;
   return this.replace(/{([0-9]*)}/g, function (match, number) {
-    return typeof args[number] != "undefined" ? args[number] : match;
+    return typeof args[number] != 'undefined' ? args[number] : match;
   });
 };
+
+import WTitle from './title.vue';
+import WHead from './head.vue';
+import WBody from './body.vue';
+import WLoading from './loading.vue';
 
 import {
   defineComponent,
@@ -190,10 +174,10 @@ import {
   watch,
   onBeforeUpdate,
   nextTick,
-} from "vue";
+} from 'vue';
 
 export default defineComponent({
-  name: "my-table",
+  name: 'WTable',
   props: {
     // 是否讀取中
     isLoading: {
@@ -213,7 +197,7 @@ export default defineComponent({
     // 標題
     title: {
       type: String,
-      default: "",
+      default: '',
     },
     // 欄位
     columns: {
@@ -249,8 +233,8 @@ export default defineComponent({
       type: Object,
       default: () => {
         return {
-          order: "id",
-          sort: "asc",
+          order: 'id',
+          sort: 'asc',
         };
       },
     },
@@ -259,22 +243,32 @@ export default defineComponent({
       type: Object,
       default: () => {
         return {
-          pagingInfo: "Showing {0}-{1} of {2}",
-          pageSizeChangeLabel: "Row count:",
-          gotoPageLabel: "Go to page:",
-          noDataAvailable: "No data",
+          pagingInfo: 'Showing {0}-{1} of {2}',
+          pageSizeChangeLabel: 'Row count:',
+          gotoPageLabel: 'Go to page:',
+          noDataAvailable: 'No data',
         };
       },
     },
   },
+  components: {
+    WTitle,
+    WHead,
+    WBody,
+    WLoading,
+  },
   setup(props, { emit }) {
+    const tableHeadRef = ref(null);
+    const tableBodyRef = ref(null);
+    const tableLoadingRef = ref(null);
+
     // 組件用內部設定值
     const setting = reactive({
       // 是否全選
       isCheckAll: false,
       // KEY欄位名稱
       keyColumn: computed(() => {
-        let key = "";
+        let key = '';
         props.columns.forEach((col) => {
           if (col.isKey) {
             key = col.field;
@@ -324,7 +318,6 @@ export default defineComponent({
       }),
     });
 
-    ////////////////////////////
     //
     //  Checkbox 相關操作
     //
@@ -356,7 +349,7 @@ export default defineComponent({
             }
           });
           // 回傳畫面上選上的資料
-          emit("return-checked-rows", isChecked);
+          emit('return-checked-rows', isChecked);
         }
       );
     }
@@ -372,7 +365,7 @@ export default defineComponent({
         }
       });
       // 回傳畫面上選上的資料
-      emit("return-checked-rows", isChecked);
+      emit('return-checked-rows', isChecked);
     };
 
     /**
@@ -385,39 +378,36 @@ export default defineComponent({
         }
       });
       // 回傳畫面上選上的資料
-      emit("return-checked-rows", []);
+      emit('return-checked-rows', []);
     };
 
-    ////////////////////////////
-    //
     //  排序·換頁等 相關操作
-    //
 
     /**
      * 呼叫執行排序
      */
-    const doSort = (order) => {
-      let sort = "asc";
-      if (order == props.sortable.order) {
-        // 排序中的項目時
-        if (props.sortable.sort == "asc") {
-          sort = "desc";
-        }
-      }
-      let offset = (setting.page - 1) * setting.pageSize;
-      let limit = setting.page * setting.pageSize;
-      emit("do-search", offset, limit, order, sort);
+    // const doSort = (order) => {
+    //   let sort = 'asc';
+    //   if (order == props.sortable.order) {
+    //     // 排序中的項目時
+    //     if (props.sortable.sort == 'asc') {
+    //       sort = 'desc';
+    //     }
+    //   }
+    //   let offset = (setting.page - 1) * setting.pageSize;
+    //   let limit = setting.page * setting.pageSize;
+    //   emit('do-search', offset, limit, order, sort);
 
-      // 清空畫面上選擇的資料
-      if (setting.isCheckAll) {
-        // 取消全選時自然會清空
-        setting.isCheckAll = false;
-      } else {
-        if (props.hasCheckbox) {
-          clearChecked();
-        }
-      }
-    };
+    //   // 清空畫面上選擇的資料
+    //   if (setting.isCheckAll) {
+    //     // 取消全選時自然會清空
+    //     setting.isCheckAll = false;
+    //   } else {
+    //     if (props.hasCheckbox) {
+    //       clearChecked();
+    //     }
+    //   }
+    // };
 
     /**
      * 切換頁碼
@@ -433,7 +423,7 @@ export default defineComponent({
       let limit = page * setting.pageSize;
       if (!props.isReSearch || page > 1 || page == prevPage) {
         // 非重新查詢發生的頁碼變動才執行呼叫查詢
-        emit("do-search", offset, limit, order, sort);
+        emit('do-search', offset, limit, order, sort);
       }
     };
     // 監聽頁碼切換
@@ -493,83 +483,38 @@ export default defineComponent({
         }
         nextTick(function () {
           // 資料完成渲染後回傳私有元件
-          let localElement = document.getElementsByClassName("is-rows-el");
-          emit("is-finished", localElement);
+          let localElement = document.getElementsByClassName('is-rows-el');
+          emit('is-finished', localElement);
         });
       }
     );
 
+    // setup return
+    let ret = {
+      tableHeadRef,
+      tableBodyRef,
+      tableHeadRef,
+      setting,
+      // doSort: tableHeadRef.value?.doSort,
+      prevPage,
+      movePage,
+      nextPage,
+    };
     if (props.hasCheckbox) {
-      // 需要 Checkbox 時
-      return {
-        setting,
+      ret = {
+        ...ret,
+        // 需要 Checkbox 時
         rowCheckbox,
         checked,
-        doSort,
-        prevPage,
-        movePage,
-        nextPage,
-      };
-    } else {
-      return {
-        setting,
-        doSort,
-        prevPage,
-        movePage,
-        nextPage,
       };
     }
+
+    return ret;
   },
 });
 </script>
 
-<style scoped>
-.checkbox-th {
-  width: 1%;
-}
-
-.both {
-  background-image: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABMAAAATCAQAAADYWf5HAAAAkElEQVQoz7X QMQ5AQBCF4dWQSJxC5wwax1Cq1e7BAdxD5SL+Tq/QCM1oNiJidwox0355mXnG/DrEtIQ6azioNZQxI0ykPhTQIwhCR+BmBYtlK7kLJYwWCcJA9M4qdrZrd8pPjZWPtOqdRQy320YSV17OatFC4euts6z39GYMKRPCTKY9UnPQ6P+GtMRfGtPnBCiqhAeJPmkqAAAAAElFTkSuQmCC");
-}
-
-.sortable {
-  cursor: pointer;
-  background-position: right;
-  background-repeat: no-repeat;
-  padding-right: 30px !important;
-}
-
-.asc {
-  background-image: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABMAAAATCAYAAAByUDbMAAAAZ0lEQVQ4y2NgGLKgquEuFxBPAGI2ahhWCsS/gDibUoO0gPgxEP8H4ttArEyuQYxAPBdqEAxPBImTY5gjEL9DM+wTENuQahAvEO9DMwiGdwAxOymGJQLxTyD+jgWDxCMZRsEoGAVoAADeemwtPcZI2wAAAABJRU5ErkJggg==);
-}
-
-.desc {
-  background-image: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABMAAAATCAYAAAByUDbMAAAAZUlEQVQ4y2NgGAWjYBSggaqGu5FA/BOIv2PBIPFEUgxjB+IdQPwfC94HxLykus4GiD+hGfQOiB3J8SojEE9EM2wuSJzcsFMG4ttQgx4DsRalkZENxL+AuJQaMcsGxBOAmGvopk8AVz1sLZgg0bsAAAAASUVORK5CYII=);
-}
-
-.loading-mask {
-  position: absolute;
-  z-index: 9998;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background-color: rgba(0, 0, 0, 0.5);
-  display: table;
-  transition: opacity 0.3s ease;
-}
-
-.loading-content {
-  display: table-cell;
-  vertical-align: middle;
-}
-
-.loading-icon {
-  display: block;
-  margin-left: auto;
-  margin-right: auto;
-}
-
+<style>
 .card {
   position: relative;
   display: -ms-flexbox;
@@ -584,12 +529,12 @@ export default defineComponent({
 }
 
 select {
-    width: auto;
-    border: 1px solid #cccccc;
-    background-color: #ffffff;
-    height: auto;
-    padding: 0px;
-    margin-bottom: 0px;
+  width: auto;
+  border: 1px solid #cccccc;
+  background-color: #ffffff;
+  height: auto;
+  padding: 0px;
+  margin-bottom: 0px;
 }
 
 table {
@@ -607,12 +552,6 @@ tr {
   display: table-row;
   vertical-align: inherit;
   border-color: inherit;
-}
-
-.table .thead-dark th {
-  color: #fff;
-  background-color: #343a40;
-  border-color: #454d55;
 }
 
 .table-bordered thead td,

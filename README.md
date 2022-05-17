@@ -1,23 +1,27 @@
-# 丰羽计划课前练习
+> TableProps
 
-实现一个表格组件，功能：
+|  名称   | 类型  | 默认值| 说明 |
+|  ----  | ----  | ---- | ----- |
+| rows | `Array<object>` | `[]` | 需要展示的数据 |
+| columns  | `Array<DataTableColumn>` | `[]`  | 需要展示的列 |
+| totalRecordCount | `number` | `0`  | 总共数据条数 |
+| sortable | `object<Sorter>` | `{ order: '', sort: 'asc' }`  | 配置排序列及算法 |
+| messages | `object<PageerInfo>` | `{ pagingInfo: '', gotoPageLabel: '', pageSizeChangeLabel: '', noDataAvailable: ''  }`  | 配置分页功能相关信息 |
+| hasCheckbox | `boolean` | `false`  | 是否存在第一列选择框 |
+| isLoading | `boolean` | `false` | 是否显示loading状态 |
+| isReSearch | `boolean` | `false` | 是否显示搜索按钮 |
+| event:doSearch | `(offset, limit, order, sort) => {}` | `() => {}` | 搜索 |
+| event:isFinished | `(elements) => {}` | `() => {}` | loading结束触发事件 |
+| event:returnCheckedLoads | `(rowsKey) => {}` | `() => {}` | 被选中的rows key |
+| event:returnCheckedLoads | `(rowsKey) => {}` | `() => {}` | 被选中的rows key |
 
-- 渲染表头
-- 渲染表格主体内容
-- 分页功能(上一页，下一页，跳页（输入框输入）)
-- 排序功能(顺序/倒叙/恢复无序)
+> TableColumnProps
 
-特殊说明：
-
-- 样式无要求，能看即可
-- 推荐使用 vue3 + tsx 结合组合式 API 完成
-  - 如果对 tsx 语法不熟悉，可以使用 vue template
-  - 如果对 vue3 语法不熟悉, 可以使用 vue2 + @vue/composition-api
-  - 如果对 vue 技术栈不熟悉，可以使用其他技术栈
-
-其他要求：
-
-- UML 建模、API 设计，以及可运行的代码
-- 单测代码、覆盖率分析
-- 良好的代码、注释、文档等
-- 具备可扩展性设计（例如：筛选（过滤）功能）
+|  名称   | 类型  | 默认值| 说明 |
+|  ----  | ----  | ---- | ----- |
+| width | `string` | `auto` | 列的宽度 |
+| label | `string` | `''` | 列名 |
+| isKey | `boolean` | `false` | 是否为关键列 |
+| sortable | `boolean` | `false` | 是否可排序 |
+| display | `(row) => VNode` | `() => ({})` | 渲染单元格 |
+| sortable | `boolean` | `false` | 是否可排序 |
