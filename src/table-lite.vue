@@ -49,79 +49,7 @@ const sampleData2 = (offst, limit) => {
 
 export default defineComponent({
   name: 'WTable',
-  props: {
-    // 是否讀取中
-    isLoading: {
-      type: Boolean,
-      require: true,
-    },
-    // 是否執行了重新查詢
-    isReSearch: {
-      type: Boolean,
-      require: true,
-    },
-    // 有無Checkbox
-    hasCheckbox: {
-      type: Boolean,
-      default: false,
-    },
-    // 標題
-    title: {
-      type: String,
-      default: '',
-    },
-    // 欄位
-    columns: {
-      type: Array,
-      default: () => {
-        return [];
-      },
-    },
-    // 資料
-    rows: {
-      type: Array,
-      default: () => {
-        return [];
-      },
-    },
-    // 一頁顯示筆數
-    pageSize: {
-      type: Number,
-      default: 10,
-    },
-    // 總筆數
-    total: {
-      type: Number,
-      default: 100,
-    },
-    // 現在頁數
-    page: {
-      type: Number,
-      default: 1,
-    },
-    // 排序條件
-    sortable: {
-      type: Object,
-      default: () => {
-        return {
-          order: 'id',
-          sort: 'asc',
-        };
-      },
-    },
-    // 顯示文字
-    messages: {
-      type: Object,
-      default: () => {
-        return {
-          pagingInfo: 'Showing {0}-{1} of {2}',
-          pageSizeChangeLabel: 'Row count:',
-          gotoPageLabel: 'Go to page:',
-          noDataAvailable: 'No data',
-        };
-      },
-    },
-  },
+
   components: {
     WTable,
   },
@@ -143,7 +71,7 @@ export default defineComponent({
           field: 'name',
           width: '10%',
           sortable: true,
-          display: function (row) {
+          render: function (row) {
             return (
               '<a href="#" data-id="' +
               row.user_id +
@@ -173,7 +101,7 @@ export default defineComponent({
         },
       ],
       rows: sampleData1(0, 10),
-      totalRecordCount: 20,
+      total: 20,
       sortable: {
         order: 'id',
         sort: 'asc',
@@ -198,7 +126,7 @@ export default defineComponent({
         } else {
           table.rows = sampleData2(offset, limit);
         }
-        table.totalRecordCount = 20;
+        table.total = 20;
         table.sortable.order = order;
         table.sortable.sort = sort;
       }, 600);
