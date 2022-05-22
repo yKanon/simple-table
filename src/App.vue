@@ -1,16 +1,26 @@
 <template>
-  <table-lite />
+  <table-lite :rows="rows" :columns="columns" />
 </template>
 
 <script>
-import { defineComponent, reactive } from 'vue';
-import TableLite from './table-lite.vue';
+import { defineComponent } from 'vue';
+import TableLite from './components/table/table.tsx';
+import { useMock } from './hooks/useMock.tsx';
 
 export default defineComponent({
   name: 'App',
   components: {
     TableLite,
   },
+
+  setup() {
+    const { rows, columns } = useMock();
+
+    return {
+      rows,
+      columns,
+    }
+  }
 });
 </script>
 
