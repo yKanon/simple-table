@@ -1,13 +1,16 @@
 import { defineComponent, PropType, ref, provide, computed } from 'vue';
-import type { TableProps, ColumnType, RecordType } from './interface';
-import { useRows } from './hooks/useRows';
-import { Table_Token } from './token'
-import cloneDeep from 'lodash-es/cloneDeep';
 
 import WHead from './head/head';
 import WBody from './body/body';
 
+import cloneDeep from 'lodash-es/cloneDeep';
+import { Table_Token } from './token';
 import './styles/index.css';
+
+import { useSortable } from './hooks/use-sortable';
+import { useRows } from './hooks/use-rows';
+
+import type { TableProps, ColumnType, RecordType } from './interface';
 
 const Table = defineComponent({
   name: 'WTable',
@@ -28,10 +31,19 @@ const Table = defineComponent({
   setup(props, { expose }) {
     const table = ref(null);
 
-    const newRows = computed(() => cloneDeep(props.rows));
+    // 防止修改用户传入数据，减小副作用
+    const clonedRows = computed(() => cloneDeep(props.rows));
+    const clonedColumns = computed(() => cloneDeep(props.columns));
+
+    useSortable({ clonedColumns });
+    useRows({
+      props,
+      clonedRows,
+    });
+
     const context = {
       props,
-      newRows
+      clonedRows,
     };
 
     provide(Table_Token, context);
@@ -41,7 +53,7 @@ const Table = defineComponent({
       return (
         <table>
           <WHead columns={props.columns} />
-          <WBody rows={newRows} columns={props.columns} />
+          <WBody rows={clonedRows} columns={props.columns} />
         </table>
       );
     };

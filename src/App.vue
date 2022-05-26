@@ -5,7 +5,7 @@
 <script>
 import { defineComponent } from 'vue';
 import TableLite from './components/table/table.tsx';
-import { useMock } from './hooks/useMock.tsx';
+import { useMock } from './hooks/use-mock.tsx';
 
 export default defineComponent({
   name: 'App',

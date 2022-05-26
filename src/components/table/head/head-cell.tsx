@@ -1,9 +1,9 @@
 import { computed, defineComponent, inject, PropType } from "vue";
 import { ColumnType } from "../interface";
 import WSortableTrigger from './triggers/sortable-trigger';
-import { useSortable } from '../hooks/useSortable'
+import { useSortable } from '../hooks/use-sortable'
 import { Table_Token } from '../token';
-import { useRows } from '../hooks/useRows';
+import { useRows } from '../hooks/use-rows';
 
 export default defineComponent({
   name: 'WHeadCell',
