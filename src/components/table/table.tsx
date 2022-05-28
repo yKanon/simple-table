@@ -35,15 +35,18 @@ const Table = defineComponent({
     const clonedRows = computed(() => cloneDeep(props.rows));
     const clonedColumns = computed(() => cloneDeep(props.columns));
 
-    useSortable({ clonedColumns });
-    useRows({
+    const sortableContext = useSortable({ clonedColumns });
+    const { sortedRows } = useRows({
       props,
       clonedRows,
+      activeSortConfigs: sortableContext.activeSortConfigs,
     });
 
     const context = {
       props,
-      clonedRows,
+      clonedRows: sortedRows,
+      clonedColumns,
+      ...sortableContext,
     };
 
     provide(Table_Token, context);
@@ -52,8 +55,8 @@ const Table = defineComponent({
     return () => {
       return (
         <table>
-          <WHead columns={props.columns} />
-          <WBody rows={clonedRows} columns={props.columns} />
+          <WHead />
+          <WBody />
         </table>
       );
     };

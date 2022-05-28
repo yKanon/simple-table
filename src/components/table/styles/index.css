@@ -3,6 +3,13 @@ table {
   border-spacing: 0;
 }
 
+th {
+  /* background: red; */
+}
+td {
+  background: green;
+}
+
 th,
 td {
   border: 1px solid #ccc;

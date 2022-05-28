@@ -1,9 +1,11 @@
 import { type InjectionKey, ComputedRef } from 'vue';
-import { RecordType, TableProps } from './interface';
+import { RecordType, TableProps, ColumnType } from './interface';
+import { type SortableContext } from './hooks/use-sortable';
 
-export interface TableContext {
+export interface TableContext extends SortableContext {
   props: TableProps;
-  newRows: ComputedRef<RecordType[]>;
+  clonedRows: ComputedRef<RecordType[]>;
+  clonedColumns: ComputedRef<ColumnType[]>;
 }
 
 export const Table_Token: InjectionKey<TableContext> = Symbol('Table_Token');

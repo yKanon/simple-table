@@ -1,5 +1,7 @@
+import type { RecordType, ColumnType } from '../components/table/interface';
+
 export const useMock = () => {
-  const rows = [
+  const rows: RecordType[] = [
     {
       key: '1',
       name: '胡彦斌',
@@ -14,7 +16,7 @@ export const useMock = () => {
     },
   ];
 
-  const columns = [
+  const columns: ColumnType[] = [
     {
       title: '姓名',
       dataIndex: 'name',
@@ -22,16 +24,19 @@ export const useMock = () => {
     {
       title: '年龄',
       dataIndex: 'age',
-      sortable: true,
+      sortable: {
+        orderBy: 'desc',
+      },
     },
     {
       title: '住址',
       dataIndex: 'address',
+      sortable: {},
     },
   ];
 
   return {
     rows,
-    columns
-  }
-}
+    columns,
+  };
+};

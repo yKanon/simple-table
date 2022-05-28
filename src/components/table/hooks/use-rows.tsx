@@ -2,33 +2,63 @@ import { computed, Ref, ComputedRef } from 'vue';
 
 import type { ColumnType, RecordType, Key, TableProps } from '../interface';
 import { type ActiveSortConfig } from './use-sortable';
+import { ORDER } from '../../../const';
+import useState from '../../../hooks/use-state';
 
 interface Params {
-  props?: TableProps;
-  activeSorter?: Ref<string>;
-  clonedRows?: ComputedRef<RecordType[]>;
+  props: TableProps;
+  clonedRows: ComputedRef<RecordType[]>;
+  activeSortConfigs: ComputedRef<ActiveSortConfig[]>;
+}
+interface FlowData {
+  record: unknown;
+  rowKey: Key;
+}
+export interface RecordContext {
+  sortedRows: ComputedRef<RecordType[]>;
 }
 
-export const useRows = ({ props, activeSorter, clonedRows }: Params) => {
-  // 获取第一个需要排序的列
-  const needSort = props!.columns.find((col) => col.sortable);
+const sortData = (
+  clonedRows: ComputedRef<RecordType[]>,
+  activeSortConfigs: ComputedRef<ActiveSortConfig[]>
+): RecordType[] => {
+  const sorters = activeSortConfigs.value.filter((config) => config.sorter);
+  const sorterLen = sorters.length;
 
-  const sortData = (rows: Ref<RecordType[]>, col: ColumnType) => {
-    // rows.value = rows.value.sort((a: RecordType, b: RecordType) => {
-    //   if (sorter.value === 'asc') {
-    //     console.log(col.dataIndex)
-    //     return a[col.dataIndex] - b[col.dataIndex]
-    //   } else if (sorter.value === 'desc') {
-    //     return b[col.dataIndex] - a[col.dataIndex]
-    //   } else {
-    //     return 0
-    //   }
-    // })
-  };
+  if (sorterLen === 0) {
+    return clonedRows.value;
+  }
 
-  const sortedRows = computed(() => sortData(rows, needSort!));
+  const tempData = clonedRows.value.slice();
+  return tempData.sort((cur, next) => {
+    console.log('cur: ', cur);
+    for (let index = 0; index < sorterLen; index++) {
+      const { orderBy, sorter } = sorters[index];
+      const sorterResult = sorter!(cur, next);
 
-  return {
-    sortedRows,
-  };
+      if (sorterResult !== 0) {
+        return orderBy === ORDER.asc ? sorterResult : -sorterResult;
+      }
+    }
+    return 0;
+  });
+};
+export const useRows = ({
+  props,
+  activeSortConfigs,
+  clonedRows,
+}: Params): RecordContext => {
+  // 用来操作的数据
+  // let [flowDatas, setFlowDatas] = useState<FlowData[]>();
+  // setFlowDatas(
+  //   clonedRows.value.map((row) => {
+  //     return {
+  //       record: row,
+  //       rowKey: row.key,
+  //     } as FlowData;
+  //   })
+  // );
+  const sortedRows = computed(() => sortData(clonedRows, activeSortConfigs));
+
+  return { sortedRows };
 };

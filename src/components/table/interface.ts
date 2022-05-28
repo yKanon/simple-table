@@ -1,3 +1,4 @@
+import { VNodeChild } from 'vue';
 export type Key = string | number | symbol;
 
 export interface TableProps {
@@ -24,3 +25,7 @@ export interface TableColumnSortConfig<T = unknown> {
   // orders?: TableColumnSortOrder[]; // 支持的排序方式
   sorter?: Sorter<T>; // 自定义排序函数
 }
+
+export type Child = VNodeChild | undefined;
+export type Children = VNodeChild[] | undefined;
+export type RenderResult = Child | Children;

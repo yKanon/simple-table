@@ -1,7 +1,15 @@
-import { computed, defineComponent, inject, PropType } from "vue";
-import { ColumnType } from "../interface";
+import {
+  computed,
+  defineComponent,
+  inject,
+  PropType,
+  normalizeClass,
+  VNodeChild,
+  Fragment,
+} from 'vue';
+import { ColumnType, RenderResult, Child, Children } from '../interface';
 import WSortableTrigger from './triggers/sortable-trigger';
-import { useSortable } from '../hooks/use-sortable'
+import { useSortable } from '../hooks/use-sortable';
 import { Table_Token } from '../token';
 import { useRows } from '../hooks/use-rows';
 
@@ -12,42 +20,72 @@ export default defineComponent({
     column: {
       type: Object as PropType<ColumnType>,
       required: true,
-    }
+    },
   },
 
   setup(props) {
-    const { handleSort, sorter } = useSortable();
-    const { props: tableProps, newRows } = inject(Table_Token)!;
-
-
-    const handleClick = () => {
-      const { sortable } = props.column
-
-      if (sortable) {
-        handleSort()
-      }
-    }
-
-    useRows({
+    const {
       props: tableProps,
-      sorter,
-      rows: newRows
+      activeOrderMap,
+      handleSort,
+    } = inject(Table_Token)!;
+
+    // 获取当前列的排序配置
+    const activeOrderBy = computed(() => {
+      return activeOrderMap[props.column.dataIndex];
+    });
+    const classes = computed(() => {
+      const { sortable } = props.column;
+      let classes: Record<string, boolean> = {
+        thWrap: true,
+        cursorable: !!props.column.sortable, // 配置了 sortable 则可点击，cursor: pointer
+      };
+
+      return normalizeClass(classes);
     });
 
-    return () => {
+    const renderChild = (column: ColumnType) => {
+      let child: Child = column.title;
+
+      return child;
+    };
+
+    const renderSortableTrigger = (column: ColumnType): Child => {
+      if (!column.sortable) {
+        return;
+      }
+
       return (
-        <th onClick={handleClick}>
-          <div class={{
-            thWrap: true,
-            cursorable: props.column.sortable,
-          }}>
-            {props.column.title}
-            {
-              props.column.sortable && <WSortableTrigger sortable={props.column.sortable} sorter={sorter.value} />
-            }
-          </div>
-        </th>
+        <WSortableTrigger
+          column={column}
+          activeOrderBy={activeOrderBy.value}
+          handleSort={handleSort}
+        />
       );
-    }
-  }
-})
+    };
+
+    const handleClick = () => {
+      const { dataIndex, sortable } = props.column;
+
+      if (sortable) {
+        handleSort(dataIndex);
+      }
+    };
+
+    return () => {
+      let child: Child;
+      // 渲染 title
+      child = renderChild(props.column);
+      if (props.column.sortable) {
+        child = (
+          <Fragment>
+            <span onClick={handleClick}>{child}</span>
+            {renderSortableTrigger(props.column)}
+          </Fragment>
+        );
+      }
+
+      return <th onClick={handleClick}>{child}</th>;
+    };
+  },
+});
